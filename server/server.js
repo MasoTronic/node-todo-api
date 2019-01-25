@@ -1,3 +1,4 @@
+var {ObjectID} = require('mongodb');
 var express = require('express');
 var bodyParser = require('body-parser');
 
@@ -22,6 +23,24 @@ app.post('/todos', (req,res) => {
     });
 
     console.log(req.body);
+});
+
+app.get('/todos/:id', (req,res)=>{
+console.log(req.params)
+    if(!ObjectID.isValid(req.params.id))
+    {
+    return res.status(404).send();
+    }
+    Todo.findById(req.params.id).then((result)=>{
+        if(!result)
+        {
+            res.send('no such user was found');
+        }
+        res.send({result});
+    }).catch((err)=>{
+        res.send('ann error occured');
+    });
+
 });
 app.listen(3000, () => {
     console.log("ears wide open");
