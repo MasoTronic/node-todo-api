@@ -1,11 +1,15 @@
 var {ObjectID} = require('mongodb');
 var express = require('express');
 var bodyParser = require('body-parser');
+const _ = require('lodash');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/Todo-model');
+var {User} = require('./models/User-model');
+
 
 var app = express();
+var port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
@@ -20,6 +24,29 @@ app.post('/todos', (req,res) => {
     },(err)=>{
         console.log("error");
         res.status(400).send(e);
+    });
+
+    console.log(req.body);
+});
+
+app.post('/users', (req,res) => {
+    // console.log(req.body.text['email'] + 'data received ' + req.body.text['password'])
+    var body = _.pick(req.body,['email','password'])
+    let email = req.body.email;
+
+    let password = req.body.password;
+    console.log(JSON.stringify(req.body));
+    var user = new User(body);
+    
+    
+    user.save().then(()=>{
+        console.log('saved')
+       return user.generateAuthToken();
+    }).then((token) => {
+        res.header('x-auth', token).send(user);
+    }).catch((err) => {
+        console.log('error time');
+        res.status(400).send("error happened " + err);
     });
 
     console.log(req.body);
@@ -42,8 +69,8 @@ console.log(req.params)
     });
 
 });
-app.listen(3000, () => {
-    console.log("ears wide open");
+app.listen(port, () => {
+    console.log(`port wide open: ${port}`);
 });
 
 
