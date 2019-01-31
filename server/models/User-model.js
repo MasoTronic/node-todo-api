@@ -24,11 +24,6 @@ var UserSchema = new mongoose.Schema({
         require: true,
         minlength: 5
     },
-    tokens: [{
-        access: {
-            type: String,
-            required: true
-        },
         tokens: [{
             access: {
                 type: String,
@@ -38,9 +33,6 @@ var UserSchema = new mongoose.Schema({
                 type: String,
                 required: true
             }
-
-
-        }]
     }]
 });
 
@@ -53,19 +45,42 @@ UserSchema.methods.toJSON = function(){
 UserSchema.methods.generateAuthToken = function(){
     console.log('in here')
     var user = this;
-    console.log(JSON.stringify(user));
+    console.log(JSON.stringify(user) + 'just found user');
 
     var access = 'auth';
-    var token = jwt.sign({_id: user._id.toHexString()}, 'hideThis');
-    user.tokens.concat([{access, token}]);
+    var token = jwt.sign({_id: user._id.toHexString(),access}, 'hideThis');
+    console.log(token+ "toekn received")
+    user.tokens.push({access, token});
+    console.log(user + 'added push')
 
-   return user.save().then(() => {
-    console.log(JSON.stringify("tsa"));
+   return user.save().then((res) => {
+    console.log(JSON.stringify("tsa "+ res ));
         return token;
     }).catch((err)=> {
         console.log(JSON.stringify("this error is here" + err));
         return err;
     });
+}
+
+UserSchema.statics.findByToken = function(token){
+
+
+
+    let User = this;
+    var decoded;
+    try {
+        decoded = jwt.verify(token, 'hideThis')
+        console.log(decoded);
+    } catch (error) {
+        return  Promise.reject('user does not exist');
+    }
+
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    })
+   
 }
 
 

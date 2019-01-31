@@ -6,6 +6,7 @@ const _ = require('lodash');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/Todo-model');
 var {User} = require('./models/User-model');
+var {authenticate} = require('../server/middleware/authenticate');
 
 
 var app = express();
@@ -50,6 +51,14 @@ app.post('/users', (req,res) => {
     });
 
     console.log(req.body);
+});
+
+
+app.get('/users/me', authenticate,(req, res)=>{
+    console.log(req.user + 'user from authenticating urls')
+    res.send(req.user);
+
+   console.log(JSON.stringify(req.token));
 });
 
 app.get('/todos/:id', (req,res)=>{
